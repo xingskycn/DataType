@@ -3448,6 +3448,7 @@ SetParamPtrsAndReturn:
 	if ([data length] == 0)
 	{
 		LogWarn(@"Ignoring attempt to send nil/empty data.");
+        NSLog(@"data is null!");
 		return;
 	}
 	

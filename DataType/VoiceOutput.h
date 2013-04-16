@@ -11,37 +11,25 @@
 
 #import "GCDAsyncUdpSocket.h"
 
-@protocol CheckFeedBackDelegate <NSObject>
-
--(void)changeTheLable:(NSString *)lableText;
-
-@end
-
-@interface VoiceInput : NSObject 
+@interface VoiceOutput : NSObject
 {
     AudioQueueRef audioQueueObject;
-    UInt32 numPacketsToWrite;
-    SInt64 startingPacketCount;
-    id<CheckFeedBackDelegate> delegate;
+    
+    NSMutableArray *queue;
     
     GCDAsyncUdpSocket *socket;
     long tag;
-    NSString *dstHost;
-    NSInteger dstPort;
 }
 
+-(void)bind:(NSInteger)port;
 -(void)start;
 -(void)stop;
 
 -(void)prepareAudioQueue;
 
-@property UInt32 numPacketsToWrite;
-@property SInt64 startingPacketCount;
+@property (retain) NSMutableArray *queue;
 
 @property (retain) GCDAsyncUdpSocket *socket;
-@property (retain) NSString *dstHost;
-@property (retain) id <CheckFeedBackDelegate> delegate;
-@property NSInteger dstPort;
 @property long tag;
 
 @end

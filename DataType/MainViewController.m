@@ -28,6 +28,7 @@
         
                 
         inputVoice = [[VoiceInput alloc] init];
+        inputVoice.delegate = self;
         inputVoice.dstHost = HOST_IP;
         inputVoice.dstPort = HOST_PORT;
                 isIn = NO;
@@ -54,16 +55,20 @@
 -(IBAction)pressedCon:(id)sender
 {
     //判断socket是否联通；
-    NSError *err = nil;  
-    if (![inputVoice.socket connectToHost:HOST_IP onPort:HOST_PORT error:&err]) {
-        lblConnection.text = @"Connection is failed!";
-        lblConnection.textColor = [UIColor redColor];
-        
-    } 
-    else {
-        lblConnection.text = @"Connection is successful!";
-        lblConnection.textColor = [UIColor blackColor];
-    }
+//    NSError *err = nil;  
+    NSData *data = [[NSString stringWithFormat:@"isOpen"] dataUsingEncoding:NSUTF8StringEncoding];
+    
+    [inputVoice.socket sendData:data toHost:HOST_IP port:HOST_PORT withTimeout:-1 tag:0];
+    
+//    if (![inputVoice.socket connectToHost:HOST_IP onPort:HOST_PORT error:&err]) {
+//        lblConnection.text = @"Connection is failed!";
+//        lblConnection.textColor = [UIColor redColor];
+//        
+//    } 
+//    else {
+//        lblConnection.text = @"Connection is successful!";
+//        lblConnection.textColor = [UIColor blackColor];
+//    }
 
 }
 
@@ -72,8 +77,8 @@
     [super viewDidLoad];
     
     // init lable text;
-    lblIP.text = HOST_IP;
-    lblPort.text = [NSString stringWithFormat:@"%i",HOST_PORT];
+    lblIP.text = [NSString stringWithFormat:@"IP:%@",HOST_IP];
+    lblPort.text = [NSString stringWithFormat:@"端口: %i",HOST_PORT];
     lblConnection.text = @" testing ";
 
    
@@ -90,6 +95,21 @@
 {
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
+-(void)changeTheLable:(NSString *)lableText
+{
+	
+	if ([lableText isEqualToString:@"isOpen"])
+	{
+            lblConnection.text = @"Connection is successful!";
+            lblConnection.textColor = [UIColor blackColor];
+	}
+	else
+	{
+            lblConnection.text = @"Connection is failed!";
+            lblConnection.textColor = [UIColor redColor];
+	}
+}
+
 
 
 @end

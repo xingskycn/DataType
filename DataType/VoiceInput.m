@@ -17,6 +17,7 @@
 @synthesize dstHost;
 @synthesize dstPort;
 @synthesize tag;
+@synthesize delegate;
 
 static void inputCallback(void *                               inUserData,
                           AudioQueueRef                        inAQ,
@@ -29,10 +30,12 @@ static void inputCallback(void *                               inUserData,
     
     VoiceInput *input =(VoiceInput *)inUserData;
     
-    NSUInteger length = inNumberPacketDescriptions;
-    NSData *packet = [NSData dataWithBytes:inBuffer->mAudioData length:length];    
+    NSUInteger length = inBuffer->mAudioDataByteSize;
+    NSData *packet = [NSData dataWithBytes:inBuffer->mAudioData length:length]; 
+    NSLog(@"发出的Data为:%@",packet);
     [input.socket sendData:packet toHost:input.dstHost port:input.dstPort 
                   withTimeout:-1 tag:input.tag];
+    
     
     input.startingPacketCount += inNumberPacketDescriptions;
     
@@ -86,15 +89,28 @@ static void inputCallback(void *                               inUserData,
 {
     AudioStreamBasicDescription audioFormat;
     
+//    pcm
     audioFormat.mSampleRate			= 8000.0;
-    audioFormat.mFormatID			= kAudioFormatULaw;
-    audioFormat.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    audioFormat.mBytesPerPacket		= 1;
+    audioFormat.mFormatID			= kAudioFormatLinearPCM;
+    audioFormat.mFormatFlags        = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
+    audioFormat.mBytesPerPacket		= 2;
     audioFormat.mFramesPerPacket	= 1;
-    audioFormat.mBytesPerFrame		= 1;
+    audioFormat.mBytesPerFrame		= 2;
     audioFormat.mChannelsPerFrame	= 1;
     audioFormat.mBitsPerChannel		= 16;
     audioFormat.mReserved			= 0;
+    
+//    ulaw
+    
+//    audioFormat.mSampleRate			= 8000.0;
+//    audioFormat.mFormatID			= kAudioFormatULaw;
+//    audioFormat.mFormatFlags        = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+//    audioFormat.mBytesPerPacket		= 1;
+//    audioFormat.mFramesPerPacket	= 1;
+//    audioFormat.mBytesPerFrame		= 1;
+//    audioFormat.mChannelsPerFrame	= 1;
+//    audioFormat.mBitsPerChannel		= 16;
+//    audioFormat.mReserved			= 0;
     
     AudioQueueNewInput(&audioFormat, 
                        inputCallback, 
@@ -107,7 +123,7 @@ static void inputCallback(void *                               inUserData,
     startingPacketCount = 0;
     AudioQueueBufferRef buffers[3];
     
-    numPacketsToWrite = 160;
+    numPacketsToWrite = 512;
     UInt32 bufferByteSize = numPacketsToWrite * audioFormat.mBytesPerPacket;
     
     int bufferIndex;
@@ -133,7 +149,38 @@ static void inputCallback(void *                               inUserData,
     if(err){
 		NSLog(@"AudioQueueStart = %ld", err);
 	}
-    AudioQueueDispose(audioQueueObject, YES);    
+   AudioQueueDispose(audioQueueObject, YES);    
+    [self prepareAudioQueue];
 }
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data
+      fromAddress:(NSData *)address
+withFilterContext:(id)filterContext
+{
+	NSString *msg = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	
+        if ([delegate respondsToSelector:@selector(changeTheLable:)]) {
+            
+            [self.delegate changeTheLable:msg];
+            
+        }
+    else {
+        NSLog(@"Delegate is failed!");
+    }
+}
+
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didNotConnect:(NSError *)error
+{
+    
+}
+- (void)udpSocket:(GCDAsyncUdpSocket *)sock didNotSendDataWithTag:(long)tag dueToError:(NSError *)error
+{
+    
+}
+
+- (void)udpSocketDidClose:(GCDAsyncUdpSocket *)sock withError:(NSError *)error
+{
+    
+}
+
 
 @end

@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "VoiceInput.h"
 
-@interface MainViewController : UIViewController
+@interface MainViewController : UIViewController<GCDAsyncUdpSocketDelegate,CheckFeedBackDelegate>
 {
     VoiceInput * inputVoice;
     IBOutlet UIButton *btnIn;
